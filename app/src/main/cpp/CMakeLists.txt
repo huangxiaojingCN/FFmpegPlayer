@@ -21,4 +21,5 @@ target_link_libraries(
         ffmpegplayer
         avfilter avformat avcodec avutil swresample swscale
         log
+        z
 )
