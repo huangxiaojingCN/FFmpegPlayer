@@ -13,9 +13,12 @@ add_library(
 )
 
 # 指定静态库链接库的位置
-
+set(my-libs ${CMAKE_SOURCE_DIR}/../../../libs/${ANDROID_ABI})
+message("消息打印：${my-libs}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -L${my-libs}")
 
 target_link_libraries(
         ffmpegplayer
+        avfilter avformat avcodec avutil swresample swscale
         log
 )
