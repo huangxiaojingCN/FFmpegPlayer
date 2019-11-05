@@ -6,6 +6,14 @@ extern "C" {
 }
 
 #include "FFmpegPlayer.h"
+#include "JNICallbackHelper.h"
+
+JavaVM *javaVM = 0;
+
+jint JNI_OnLoad(JavaVM *vm, void *args) {
+    javaVM = vm;
+    return JNI_VERSION_1_6;
+}
 
 extern "C"
 JNIEXPORT jstring JNICALL
@@ -23,7 +31,8 @@ JNIEXPORT void JNICALL
     LOGD("dataSource: %s", dataSource);
 
     // 创建播放器. 将 url 传递给 FFmpegPlayer
-    FFmpegPlayer *fFmpegPlayer = new FFmpegPlayer(dataSource);
+    JNICallbackHelper *jniCallbackHelper = new JNICallbackHelper(javaVM, env, instance);
+    FFmpegPlayer *fFmpegPlayer = new FFmpegPlayer(dataSource, jniCallbackHelper);
     fFmpegPlayer->prepare();
 
     env->ReleaseStringUTFChars(dataSource_, dataSource);

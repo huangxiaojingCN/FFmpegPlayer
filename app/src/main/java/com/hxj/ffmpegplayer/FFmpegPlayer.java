@@ -1,6 +1,10 @@
 package com.hxj.ffmpegplayer;
 
+import android.util.Log;
+
 public class FFmpegPlayer {
+
+    public static final String TAG = "FFmpegPlayer";
 
     static {
         System.loadLibrary("ffmpegplayer");
@@ -50,9 +54,16 @@ public class FFmpegPlayer {
 
     private native void prepareNative(String mDataSource);
 
+    public void onPrepared(int status) {
+        Log.i(TAG, "onPrepared status: " + status);
+        if (mOnPreparedListener != null) {
+            mOnPreparedListener.onPrepared(status);
+        }
+    }
+
     public interface OnPreparedListener {
 
-        void onPrepared();
+        void onPrepared(int status);
     }
 
     public void setOnPreparedListener(OnPreparedListener onPreparedListener) {

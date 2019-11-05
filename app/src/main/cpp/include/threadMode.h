@@ -1,0 +1,11 @@
+//
+// Created by 黄小净 on 2019-11-05.
+//
+
+#ifndef FFMPEGPLAYER_THREADMODE_H
+#define FFMPEGPLAYER_THREADMODE_H
+
+#define MAIN 0
+#define THREAD 1
+
+#endif //FFMPEGPLAYER_THREADMODE_H

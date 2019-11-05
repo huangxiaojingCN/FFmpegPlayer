@@ -10,6 +10,7 @@
 #include <pthread.h>
 #include "AudioChannel.h"
 #include "VideoChannel.h"
+#include "JNICallbackHelper.h"
 
 extern "C" {
 #include "libavformat/avformat.h"
@@ -17,7 +18,7 @@ extern "C" {
 
 class FFmpegPlayer {
 public:
-    FFmpegPlayer(const char *string);
+    FFmpegPlayer(const char *string, JNICallbackHelper *pHelper);
 
     ~FFmpegPlayer();
 
@@ -31,6 +32,7 @@ private:
     AudioChannel *audioChannel;
 
     VideoChannel *videoChannel;
+    JNICallbackHelper *jniCallbackHelper;
 };
 
 

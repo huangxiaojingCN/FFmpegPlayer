@@ -3,6 +3,7 @@
 //
 
 #include "FFmpegPlayer.h"
+#include "JNICallbackHelper.h"
 
 FFmpegPlayer::~FFmpegPlayer() {
     if (dataSource) {
@@ -23,11 +24,13 @@ void FFmpegPlayer::prepare() {
     pthread_create(&pt, NULL, async_task_prepare, this);
 }
 
-FFmpegPlayer::FFmpegPlayer(const char *dataSource_) {
+FFmpegPlayer::FFmpegPlayer(const char *string, JNICallbackHelper *jniCallbackHelper) {
     // 由于 c/c++ 字符串后面以 \0 结束，所有要记得长度加1
-    this->dataSource = new char[strlen(dataSource_) + 1];
-    strcpy(this->dataSource, dataSource_);
+    this->dataSource = new char[strlen(string) + 1];
+    strcpy(this->dataSource, string);
     LOGD("FFmpegPlayer prepare dataSource: %s ", this->dataSource);
+
+    this->jniCallbackHelper = jniCallbackHelper;
 }
 
 /**
@@ -42,6 +45,9 @@ void FFmpegPlayer::prepareAsync() {
     int ret = av_dict_set(&dictionary, "timeout", "5000000", 0);
     if (ret < 0) {
         LOGE("设置超时失败.");
+        if (jniCallbackHelper) {
+            jniCallbackHelper->onPrepared(THREAD, -1);
+        }
         return;
     }
 
@@ -51,12 +57,18 @@ void FFmpegPlayer::prepareAsync() {
 
     if (ret != 0) {
         LOGE("打开输入流失败");
+        if (jniCallbackHelper) {
+            jniCallbackHelper->onPrepared(THREAD, -1);
+        }
         return;
     }
 
     ret = avformat_find_stream_info(avFormatContext, 0);
     if (ret < 0) {
         LOGE("查找流信息失败.");
+        if (jniCallbackHelper) {
+            jniCallbackHelper->onPrepared(THREAD, -1);
+        }
         return;
     }
 
@@ -70,6 +82,9 @@ void FFmpegPlayer::prepareAsync() {
         AVCodec *codec = avcodec_find_decoder(codecParameters->codec_id);
         if (!codec) {
             LOGE("未找到解码器");
+            if (jniCallbackHelper) {
+                jniCallbackHelper->onPrepared(THREAD, -1);
+            }
             return;
         }
 
@@ -77,12 +92,18 @@ void FFmpegPlayer::prepareAsync() {
         AVCodecContext *avCodecContext = avcodec_alloc_context3(codec);
         if (!avCodecContext) {
             LOGE("解码器未找到");
+            if (jniCallbackHelper) {
+                jniCallbackHelper->onPrepared(THREAD, -1);
+            }
             return;
         }
 
         ret = avcodec_parameters_to_context(avCodecContext, codecParameters);
         if (ret < 0) {
             LOGE("设置解码器上下文参数失败");
+            if (jniCallbackHelper) {
+                jniCallbackHelper->onPrepared(THREAD, -1);
+            }
             return;
         }
 
@@ -90,6 +111,9 @@ void FFmpegPlayer::prepareAsync() {
         ret = avcodec_open2(avCodecContext,codec,0);
         if (ret != 0) {
             LOGE("打开解码器失败");
+            if (jniCallbackHelper) {
+                jniCallbackHelper->onPrepared(THREAD, -1);
+            }
             return;
         }
 
@@ -104,7 +128,15 @@ void FFmpegPlayer::prepareAsync() {
     // 未发现音视频
     if (!this->audioChannel && !this->videoChannel) {
         LOGE("当前文件未发现音视频.");
+        if (jniCallbackHelper) {
+            jniCallbackHelper->onPrepared(THREAD, -1);
+        }
         return;
+    }
+
+    // 回调 java 层
+    if (jniCallbackHelper) {
+        jniCallbackHelper->onPrepared(THREAD, 0);
     }
 
 }

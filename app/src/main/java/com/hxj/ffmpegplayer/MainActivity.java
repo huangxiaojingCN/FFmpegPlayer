@@ -2,9 +2,8 @@ package com.hxj.ffmpegplayer;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Environment;
+import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -13,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 
@@ -56,13 +56,25 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private Handler handler = new Handler();
+
     private void ffmpegPrepare() {
         FFmpegPlayer fmpegPlayer = FFmpegPlayer.getInstance();
         fmpegPlayer.setOnPreparedListener(new FFmpegPlayer.OnPreparedListener() {
 
             @Override
-            public void onPrepared() {
-                Log.i(TAG, "onPrepared 开始解析: ");
+            public void onPrepared(final int status) {
+                Log.i(TAG, "onPrepared 开始解析: " + Thread.currentThread().getName());
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (status == 0) {
+                            Toast.makeText(MainActivity.this, "开始解析数据: ", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(MainActivity.this, "开始解析数据异常: ", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
             }
         });
 
