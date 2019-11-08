@@ -4,10 +4,29 @@
 
 #include "BaseChannel.h"
 
-BaseChannel::BaseChannel() {
-
+BaseChannel::~BaseChannel() {
+    packets.clear();
+    frames.clear();
 }
 
-BaseChannel::~BaseChannel() {
+BaseChannel::BaseChannel(int stream_index, AVCodecContext *pContext) {
+    this->avCodecContext = pContext;
+    this->stream_index = stream_index;
 
+    packets.setReleaseCallback(releaseAVPacket);
+    frames.setReleaseCallback(releaseAVFrame);
+}
+
+void BaseChannel::releaseAVPacket(AVPacket **packet) {
+    if (packet) {
+        av_packet_free(packet);
+        *packet = NULL;
+    }
+}
+
+void BaseChannel::releaseAVFrame(AVFrame **frame) {
+    if (frame) {
+        av_frame_free(frame);
+        *frame = NULL;
+    }
 }

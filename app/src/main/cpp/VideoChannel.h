@@ -7,13 +7,26 @@
 
 
 #include "BaseChannel.h"
+extern "C" {
+#include "libswscale/swscale.h"
+#include "libavutil/imgutils.h"
+};
 
 class VideoChannel : public BaseChannel {
 
 public:
-    VideoChannel();
+    VideoChannel(int stream_index, AVCodecContext *pContext);
 
     ~VideoChannel();
+
+    void start();
+
+    pthread_t pid_video_decode;
+    pthread_t pid_video_play;
+
+    void video_decode();
+
+    void video_play();
 };
 
 

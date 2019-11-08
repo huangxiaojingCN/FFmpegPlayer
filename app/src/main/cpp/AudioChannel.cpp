@@ -4,10 +4,10 @@
 
 #include "AudioChannel.h"
 
-AudioChannel::AudioChannel() {
+AudioChannel::~AudioChannel() {
 
 }
 
-AudioChannel::~AudioChannel() {
+AudioChannel::AudioChannel(int stream_index, AVCodecContext *pContext) : BaseChannel(stream_index, pContext){
 
 }

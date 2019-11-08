@@ -26,13 +26,22 @@ public:
 
     void prepareAsync();
 
+    void start();
+
+    void startAsync();
+
 private:
+    bool isPlaying;
     char *dataSource;
 
     AudioChannel *audioChannel;
 
     VideoChannel *videoChannel;
     JNICallbackHelper *jniCallbackHelper;
+
+    AVFormatContext *avFormatContext;
+    pthread_t start_tid;
+    pthread_t pid_player;
 };
 
 
