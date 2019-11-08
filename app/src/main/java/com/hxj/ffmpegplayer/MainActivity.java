@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
         fmpegPlayer = FFmpegPlayer.getInstance();
         fmpegPlayer.setSurfaceView(mSurfaceView);
-        File file = new File(Environment.getExternalStorageDirectory(), "chengdu.mp4");
+        File file = new File(Environment.getExternalStorageDirectory(), "gaoxiao.mp4");
         fmpegPlayer.setDataSource(file.getAbsolutePath());
 
         // 等待解析结果.
