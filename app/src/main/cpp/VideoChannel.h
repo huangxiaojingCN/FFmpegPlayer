@@ -12,6 +12,8 @@ extern "C" {
 #include "libavutil/imgutils.h"
 };
 
+typedef void (* RenderCallback)(uint8_t *, int, int, int);
+
 class VideoChannel : public BaseChannel {
 
 public:
@@ -21,12 +23,16 @@ public:
 
     void start();
 
-    pthread_t pid_video_decode;
-    pthread_t pid_video_play;
-
     void video_decode();
 
     void video_play();
+
+    void setRenderCallback(RenderCallback callback);
+
+public:
+    pthread_t pid_video_decode;
+    pthread_t pid_video_play;
+    RenderCallback renderCallback;
 };
 
 

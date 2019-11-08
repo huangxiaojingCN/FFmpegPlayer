@@ -133,6 +133,7 @@ void FFmpegPlayer::prepare() {
             this->audioChannel = new AudioChannel(i, avCodecContext);
         } else if (codecParameters->codec_type == AVMEDIA_TYPE_VIDEO) {
             this->videoChannel = new VideoChannel(i, avCodecContext);
+            videoChannel->setRenderCallback(this->callback);
         }
     }
 
@@ -161,7 +162,7 @@ void FFmpegPlayer::start() {
         AVPacket *packet = av_packet_alloc();
         int ret = av_read_frame(avFormatContext, packet);
         if (!ret) {
-            // 获取一段视频包
+            // 获取视频包.
             if (videoChannel && videoChannel->stream_index == packet->stream_index) {
                 videoChannel->packets.push(packet);
             } else if (audioChannel && audioChannel->stream_index == packet->stream_index) {
@@ -187,4 +188,8 @@ void FFmpegPlayer::startAsync() {
 
     isPlaying = 1;
     pthread_create(&start_tid, NULL, start_async, this);
+}
+
+void FFmpegPlayer::setRenderCallback(RenderCallback callback) {
+    this->callback = callback;
 }

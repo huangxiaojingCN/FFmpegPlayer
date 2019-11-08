@@ -18,6 +18,8 @@ void *task_video_decode(void *args) {
 void *task_video_play(void *args) {
     VideoChannel *videoChannel = static_cast<VideoChannel *>(args);
     videoChannel->video_play();
+
+    return NULL;
 }
 
 /**
@@ -38,6 +40,7 @@ void VideoChannel::video_decode() {
     AVPacket *packet = 0;
     while (isPlaying) {
         int ret = packets.pop(packet);
+        LOGD("video decode ret: %d isPlaying: %d", ret, isPlaying);
         if (!isPlaying) {
             break;
         }
@@ -113,7 +116,12 @@ void VideoChannel::video_play() {
                 dst_data,dst_linesize);
 
         // 回调渲染.
-
+        if (renderCallback) {
+            renderCallback(
+                    dst_data[0],
+                    avCodecContext->width, avCodecContext->height,
+                    dst_linesize[0]);
+        }
         // 释放 frame.
         releaseAVFrame(&frame);
     }
@@ -122,4 +130,8 @@ void VideoChannel::video_play() {
     isPlaying = 0;
     av_freep(&dst_data[0]);
     sws_freeContext(swsContext);
+}
+
+void VideoChannel::setRenderCallback(RenderCallback callback) {
+    this->renderCallback = callback;
 }

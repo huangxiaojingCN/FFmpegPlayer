@@ -19,16 +19,16 @@ public:
 
     virtual ~BaseChannel();
 
-    void releaseAVPacket(AVPacket **packet);
-
-    void releaseAVFrame(AVFrame **frame);
-
     bool isPlaying;
 
     AVCodecContext *avCodecContext;
     int stream_index;
     SafeQueue<AVPacket *> packets;
     SafeQueue<AVFrame *> frames;
+
+    static void releaseAVPacket(AVPacket **packet);
+
+    static void releaseAVFrame(AVFrame **frame);
 };
 
 

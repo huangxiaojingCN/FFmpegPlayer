@@ -13,8 +13,8 @@ BaseChannel::BaseChannel(int stream_index, AVCodecContext *pContext) {
     this->avCodecContext = pContext;
     this->stream_index = stream_index;
 
-    packets.setReleaseCallback(releaseAVPacket);
-    frames.setReleaseCallback(releaseAVFrame);
+    packets.setReleaseCallback(this->releaseAVPacket);
+    frames.setReleaseCallback(this->releaseAVFrame);
 }
 
 void BaseChannel::releaseAVPacket(AVPacket **packet) {

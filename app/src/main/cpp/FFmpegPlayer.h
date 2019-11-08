@@ -30,6 +30,8 @@ public:
 
     void startAsync();
 
+    void setRenderCallback(RenderCallback callback);
+
 private:
     bool isPlaying;
     char *dataSource;
@@ -42,6 +44,8 @@ private:
     AVFormatContext *avFormatContext;
     pthread_t start_tid;
     pthread_t pid_player;
+
+    RenderCallback callback;
 };
 
 
