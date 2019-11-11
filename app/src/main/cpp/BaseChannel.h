@@ -12,10 +12,12 @@ extern "C" {
 #include "libavcodec/avcodec.h"
 };
 
+#include <pthread.h>
+
 
 class BaseChannel {
 public:
-    BaseChannel(int stream_index, AVCodecContext *pContext);
+    BaseChannel(int stream_index, AVCodecContext *pContext, AVRational rational);
 
     virtual ~BaseChannel();
 
@@ -29,6 +31,8 @@ public:
     static void releaseAVPacket(AVPacket **packet);
 
     static void releaseAVFrame(AVFrame **frame);
+
+    AVRational time_base;
 };
 
 

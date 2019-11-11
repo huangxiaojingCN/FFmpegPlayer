@@ -9,9 +9,10 @@ BaseChannel::~BaseChannel() {
     frames.clear();
 }
 
-BaseChannel::BaseChannel(int stream_index, AVCodecContext *pContext) {
+BaseChannel::BaseChannel(int stream_index, AVCodecContext *pContext, AVRational time_base) {
     this->avCodecContext = pContext;
     this->stream_index = stream_index;
+    this->time_base = time_base;
 
     packets.setReleaseCallback(this->releaseAVPacket);
     frames.setReleaseCallback(this->releaseAVFrame);

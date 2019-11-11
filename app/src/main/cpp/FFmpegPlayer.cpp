@@ -91,6 +91,7 @@ void FFmpegPlayer::prepare() {
 
         // 从流中获取解码这段流的参数
         AVCodecParameters *codecParameters = stream->codecpar;
+        LOGD("codec_id: %d", codecParameters->codec_id);
 
         // 通过流的编解码参数中编解码ID，获取当前流的解码器
         AVCodec *codec = avcodec_find_decoder(codecParameters->codec_id);
@@ -130,7 +131,7 @@ void FFmpegPlayer::prepare() {
 
         // 从解码器参数中获取流类型
         if (codecParameters->codec_type == AVMEDIA_TYPE_AUDIO) {
-            this->audioChannel = new AudioChannel(i, avCodecContext);
+            this->audioChannel = new AudioChannel(i, avCodecContext, stream->time_base);
         } else if (codecParameters->codec_type == AVMEDIA_TYPE_VIDEO) {
             this->videoChannel = new VideoChannel(i, avCodecContext);
             videoChannel->setRenderCallback(this->callback);
@@ -166,7 +167,7 @@ void FFmpegPlayer::start() {
             if (videoChannel && videoChannel->stream_index == packet->stream_index) {
                 videoChannel->packets.push(packet);
             } else if (audioChannel && audioChannel->stream_index == packet->stream_index) {
-
+                audioChannel->packets.push(packet);// 音频包.
             }
         } else if (ret == AVERROR_EOF) {
 
@@ -184,6 +185,10 @@ void FFmpegPlayer::start() {
 void FFmpegPlayer::startAsync() {
     if (videoChannel) {
         videoChannel->start();
+    }
+
+    if (audioChannel) {
+        audioChannel->start();
     }
 
     isPlaying = 1;

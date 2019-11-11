@@ -1,6 +1,7 @@
 #include "VideoChannel.h"
 
-VideoChannel::VideoChannel(int stream_index, AVCodecContext *avCodecContext): BaseChannel(stream_index, avCodecContext){
+VideoChannel::VideoChannel(int stream_index, AVCodecContext *avCodecContext): BaseChannel(
+        stream_index, avCodecContext, AVRational()) {
 
 }
 
