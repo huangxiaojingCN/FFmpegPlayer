@@ -159,6 +159,16 @@ void FFmpegPlayer::prepare() {
  */
 void FFmpegPlayer::start() {
     while (isPlaying) {
+        if (audioChannel && audioChannel->packets.size() > 100) {
+            av_usleep(10 * 1000);
+            continue;
+        }
+
+        if (videoChannel && videoChannel->packets.size() > 100) {
+            av_usleep(10 * 1000);
+            continue;
+        }
+
         // 未解码的音视频包
         AVPacket *packet = av_packet_alloc();
         int ret = av_read_frame(avFormatContext, packet);

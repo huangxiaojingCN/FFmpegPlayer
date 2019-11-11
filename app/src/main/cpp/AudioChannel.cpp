@@ -57,6 +57,11 @@ void AudioChannel::start() {
 void AudioChannel::audio_decode() {
     AVPacket *packet = NULL;
     while (isPlaying) {
+        if (isPlaying && frames.size() > 100) {
+            av_usleep(10 * 1000);
+            continue;
+        }
+
         int ret = packets.pop(packet);
         if (!isPlaying) {
             break;
@@ -76,6 +81,7 @@ void AudioChannel::audio_decode() {
         if (ret == AVERROR(EAGAIN)) {
             continue;
         } else if (ret != 0) {
+            releaseAVFrame(&frame);
             break;
         }
 

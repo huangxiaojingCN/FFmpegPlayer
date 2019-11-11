@@ -40,6 +40,10 @@ void VideoChannel::start() {
 void VideoChannel::video_decode() {
     AVPacket *packet = 0;
     while (isPlaying) {
+        if (isPlaying && frames.size() > 100) {
+            av_usleep(10 * 1000);
+            continue;
+        }
         int ret = packets.pop(packet);
         LOGD("video decode ret: %d isPlaying: %d", ret, isPlaying);
         if (!isPlaying) {
@@ -60,8 +64,10 @@ void VideoChannel::video_decode() {
         AVFrame *frame = av_frame_alloc();
         ret = avcodec_receive_frame(avCodecContext, frame);
         if (ret == AVERROR(EAGAIN)) {
+            releaseAVFrame(&frame);
             continue;
         } else if (ret != 0) {
+            releaseAVFrame(&frame);
             break;
         }
 
