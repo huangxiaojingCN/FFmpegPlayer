@@ -11,7 +11,7 @@ class SafeQueue {
 
     // 交给外部释放.
     typedef void (* ReleaseCallback)(T *);
-
+    typedef void (* SyncCallback)(queue<T> &);
 
 public:
     SafeQueue() {
@@ -69,6 +69,11 @@ public:
         this->callback = callback;
     }
 
+
+    void setSyncCallback(SyncCallback syncCallback) {
+        this->syncCallback = syncCallback;
+    }
+
     int empty() {
         return q.empty();
     }
@@ -90,12 +95,19 @@ public:
         pthread_mutex_unlock(&mutex);
     }
 
+    void sync() {
+        pthread_mutex_lock(&mutex);
+        SyncCallback(q);
+        pthread_mutex_unlock(&mutex);
+    }
+
 private:
     queue<T> q;
     int work;
     pthread_mutex_t mutex;
     pthread_cond_t cond;
     ReleaseCallback callback;
+    SyncCallback syncCallback;
 };
 
 #endif //FFMPEGPLAYER_SAFE_QUEUE_H

@@ -1,8 +1,31 @@
 #include "VideoChannel.h"
 
-VideoChannel::VideoChannel(int stream_index, AVCodecContext *avCodecContext): BaseChannel(
-        stream_index, avCodecContext, AVRational()) {
+void dropAVFrame(queue<AVFrame *> &q) {
+    while (!q.empty()) {
+        AVFrame *frame = q.front();
+        BaseChannel::releaseAVFrame(&frame);
+        q.pop();
+    }
+}
 
+void dropAVPacket(queue<AVPacket *> &q) {
+    while (!q.empty()) {
+        AVPacket *packet = q.front();
+        if (packet->flags != AV_PKT_FLAG_KEY) {
+            BaseChannel::releaseAVPacket(&packet);
+            q.pop();
+        } else {
+            break;
+        }
+    }
+}
+
+VideoChannel::VideoChannel(int stream_index, AVCodecContext *pContext, AVRational rational, int fps)
+        : BaseChannel(
+        stream_index, pContext, rational) {
+    this->fps = fps;
+    packets.setSyncCallback(dropAVPacket);
+    frames.setSyncCallback(dropAVFrame);
 }
 
 VideoChannel::~VideoChannel() {
@@ -122,6 +145,29 @@ void VideoChannel::video_play() {
                 avCodecContext->height,
                 dst_data,dst_linesize);
 
+        double extra_delay =  frame->repeat_pict / (2 * fps);
+        double base_delay = 1.0 / fps;
+        double  real_delay = base_delay + extra_delay;
+
+        double  video_time = frame->best_effort_timestamp * av_q2d(time_base);
+        if (!audio_channel) {
+            av_usleep(real_delay * 1000000);
+        } else {
+            double time_diff = video_time - audio_channel->audio_time;
+            if (time_diff > 0) {
+                if (time_diff > 1) {
+                    av_usleep(real_delay * 2 * 1000000);
+                } else {
+                    av_usleep((real_delay + time_diff) * 1000000);
+                }
+            } else if (time_diff < 0){
+                if (fabs(time_diff) >= 0.05) {
+                    frames.sync();
+                    continue;
+                }
+            }
+        }
+
         // 回调渲染.
         if (renderCallback) {
             renderCallback(
@@ -141,4 +187,8 @@ void VideoChannel::video_play() {
 
 void VideoChannel::setRenderCallback(RenderCallback callback) {
     this->renderCallback = callback;
+}
+
+void VideoChannel::setAudioChannel(AudioChannel *audioChannel) {
+    this->audio_channel = audioChannel;
 }

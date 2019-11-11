@@ -220,6 +220,9 @@ int AudioChannel::getPcm() {
                     frame->nb_samples);
 
         pcm_data_size = samples_per_channel * out_sample_size * out_channel;
+
+        // 读取每一帧的时间.
+        audio_time = frame->best_effort_timestamp * av_q2d(time_base);
         break;
     }
 

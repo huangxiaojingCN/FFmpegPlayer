@@ -34,6 +34,7 @@ public:
     static void releaseAVFrame(AVFrame **frame);
 
     AVRational time_base;
+    double audio_time;
 };
 
 

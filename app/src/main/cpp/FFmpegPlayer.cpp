@@ -133,7 +133,8 @@ void FFmpegPlayer::prepare() {
         if (codecParameters->codec_type == AVMEDIA_TYPE_AUDIO) {
             this->audioChannel = new AudioChannel(i, avCodecContext, stream->time_base);
         } else if (codecParameters->codec_type == AVMEDIA_TYPE_VIDEO) {
-            this->videoChannel = new VideoChannel(i, avCodecContext);
+            int fps = av_q2d(stream->avg_frame_rate);
+            this->videoChannel = new VideoChannel(i, avCodecContext, stream->time_base, fps);
             videoChannel->setRenderCallback(this->callback);
         }
     }
@@ -194,6 +195,7 @@ void FFmpegPlayer::start() {
  */
 void FFmpegPlayer::startAsync() {
     if (videoChannel) {
+        videoChannel->setAudioChannel(this->audioChannel);
         videoChannel->start();
     }
 
