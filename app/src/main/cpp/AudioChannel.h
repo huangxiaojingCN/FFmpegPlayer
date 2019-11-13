@@ -7,6 +7,7 @@
 
 
 #include "BaseChannel.h"
+#include "JNICallbackHelper.h"
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 extern "C" {

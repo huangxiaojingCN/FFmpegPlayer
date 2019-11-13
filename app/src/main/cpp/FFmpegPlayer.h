@@ -38,6 +38,9 @@ public:
 
     void stop();
 
+    int getDuration();
+
+    void seek(int progress);
 private:
     bool isPlaying;
     char *dataSource;
@@ -53,6 +56,9 @@ private:
     pthread_t pid_stop;
     pthread_t pid_prepare;
     pthread_t pid_start;
+    int duration;
+    pthread_mutex_t seek_mutex;
+    int progres;
 };
 
 

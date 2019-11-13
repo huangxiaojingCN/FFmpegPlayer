@@ -223,6 +223,10 @@ int AudioChannel::getPcm() {
 
         // 读取每一帧的时间.
         audio_time = frame->best_effort_timestamp * av_q2d(time_base);
+        if (jniCallbackHelper) {
+            jniCallbackHelper->onProgress(THREAD, audio_time);
+        }
+
         break;
     }
 

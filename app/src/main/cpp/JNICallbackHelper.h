@@ -17,11 +17,17 @@ public:
 
     void onPrepared(int threadMode, int status);
 
+    void onProgress(int threadMode, int progress);
+
+    void onPlayer(int threadMode, int status);
+
 private:
     JavaVM *javaVM;
     JNIEnv *env;
     jobject instance;
     jmethodID jmethod_prepared;
+    jmethodID jmethod_progress;
+    jmethodID jmethod_player;
 };
 
 

@@ -7,6 +7,7 @@
 
 #include "log.h"
 #include "safe_queue.h"
+#include "JNICallbackHelper.h"
 
 extern "C" {
 #include "libavcodec/avcodec.h"
@@ -33,8 +34,11 @@ public:
 
     static void releaseAVFrame(AVFrame **frame);
 
+    void setJniCallbackHelper(JNICallbackHelper *pHelper);
+
     AVRational time_base;
     double audio_time;
+    JNICallbackHelper *jniCallbackHelper;
 };
 
 

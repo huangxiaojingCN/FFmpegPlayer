@@ -141,3 +141,21 @@ Java_com_hxj_ffmpegplayer_FFmpegPlayer_releaseNative(JNIEnv *env, jobject instan
 
     DELETE(fFmpegPlayer);
 }
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_hxj_ffmpegplayer_FFmpegPlayer_getDurationNative(JNIEnv *env, jobject instance) {
+    if (fFmpegPlayer) {
+        return fFmpegPlayer->getDuration();
+    }
+
+    return 0;
+}extern "C"
+JNIEXPORT void JNICALL
+Java_com_hxj_ffmpegplayer_FFmpegPlayer_seekNative(JNIEnv *env, jobject instance,
+                                                  jint playProgress) {
+    if (fFmpegPlayer)
+    {
+        fFmpegPlayer->seek(playProgress);
+    }
+
+}

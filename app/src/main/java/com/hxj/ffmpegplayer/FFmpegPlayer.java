@@ -20,6 +20,10 @@ public class FFmpegPlayer implements SurfaceHolder.Callback {
 
     private SurfaceHolder mSurfaceHolder;
 
+    private OnProgressListener mOnProgressListener;
+
+    private OnPlayerListener mOnPlayerListener;
+
     public static FFmpegPlayer getInstance() {
         if (instance == null) {
             synchronized (FFmpegPlayer.class) {
@@ -43,6 +47,14 @@ public class FFmpegPlayer implements SurfaceHolder.Callback {
         startNative();
     }
 
+    /**
+     * 获取视频总时长.
+     * @return
+     */
+    public int getDuration() {
+        return getDurationNative();
+    }
+
     public void stop() {
         stopNative();
     }
@@ -55,6 +67,22 @@ public class FFmpegPlayer implements SurfaceHolder.Callback {
         Log.i(TAG, "onPrepared status: " + status);
         if (mOnPreparedListener != null) {
             mOnPreparedListener.onPrepared(status);
+        }
+    }
+
+    public void onPlayer(int status) {
+        if (mOnPlayerListener != null) {
+            mOnPlayerListener.onError(status);
+        }
+    }
+
+    /**
+     *  通知进度改变.
+     * @param progress
+     */
+    public void onProgress(int progress) {
+        if (mOnProgressListener != null) {
+            mOnProgressListener.onProgress(progress);
         }
     }
 
@@ -82,6 +110,10 @@ public class FFmpegPlayer implements SurfaceHolder.Callback {
 
     }
 
+    public void seek(int playProgress) {
+        seekNative(playProgress);
+    }
+
     public interface OnPreparedListener {
 
         void onPrepared(int status);
@@ -89,6 +121,24 @@ public class FFmpegPlayer implements SurfaceHolder.Callback {
 
     public void setOnPreparedListener(OnPreparedListener onPreparedListener) {
         this.mOnPreparedListener = onPreparedListener;
+    }
+
+    public interface OnProgressListener {
+
+        void onProgress(int progress);
+    }
+
+    public void setOnProgressListener(OnProgressListener l) {
+        this.mOnProgressListener = l;
+    }
+
+    public interface OnPlayerListener {
+
+        void onError(int status);
+    }
+
+    public void setOnPlayerListenner(OnPlayerListener l) {
+        this.mOnPlayerListener = l;
     }
 
     private native void startNative();
@@ -100,4 +150,8 @@ public class FFmpegPlayer implements SurfaceHolder.Callback {
     private native void prepareNative(String mDataSource);
 
     private native void setSurfaceNative(Surface surface);
+
+    private native int getDurationNative();
+
+    private native void seekNative(int playProgress);
 }

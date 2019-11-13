@@ -40,6 +40,7 @@ public:
     void setAudioChannel(AudioChannel *audioChannel);
 
     AudioChannel *audio_channel;
+
 };
 
 

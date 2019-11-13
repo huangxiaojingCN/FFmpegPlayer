@@ -10,6 +10,8 @@ FFmpegPlayer::~FFmpegPlayer() {
         delete dataSource;
         dataSource = NULL;
     }
+
+    pthread_mutex_destroy(&seek_mutex);
 }
 
 FFmpegPlayer::FFmpegPlayer(const char *string, JNICallbackHelper *jniCallbackHelper) {
@@ -19,6 +21,8 @@ FFmpegPlayer::FFmpegPlayer(const char *string, JNICallbackHelper *jniCallbackHel
     LOGD("FFmpegPlayer prepare dataSource: %s ", this->dataSource);
 
     this->jniCallbackHelper = jniCallbackHelper;
+
+    pthread_mutex_init(&seek_mutex, NULL);
 }
 
 void *start_async(void *args) {
@@ -84,6 +88,9 @@ void FFmpegPlayer::prepare() {
         return;
     }
 
+    // 获取视频时长 单位秒.
+    duration = static_cast<int>(avFormatContext->duration / AV_TIME_BASE);
+
     // 循环遍历媒体流中音视频流或其他流的个数
     for (int i = 0; i < avFormatContext->nb_streams; ++i) {
         // 获取流（音视频流）
@@ -132,16 +139,22 @@ void FFmpegPlayer::prepare() {
         // 从解码器参数中获取流类型
         if (codecParameters->codec_type == AVMEDIA_TYPE_AUDIO) {
             this->audioChannel = new AudioChannel(i, avCodecContext, stream->time_base);
+            if (duration != 0) {
+                audioChannel->setJniCallbackHelper(jniCallbackHelper);
+            }
         } else if (codecParameters->codec_type == AVMEDIA_TYPE_VIDEO) {
             int fps = av_q2d(stream->avg_frame_rate);
             this->videoChannel = new VideoChannel(i, avCodecContext, stream->time_base, fps);
             videoChannel->setRenderCallback(this->callback);
+
+            if (duration != 0) {
+                videoChannel->setJniCallbackHelper(jniCallbackHelper);
+            }
         }
     }
 
     // 未发现音视频
     if (!this->audioChannel && !this->videoChannel) {
-        LOGE("当前文件未发现音视频.");
         if (jniCallbackHelper) {
             jniCallbackHelper->onPrepared(THREAD, -1);
         }
@@ -230,7 +243,7 @@ void *task_stop(void *args) {
     DELETE(fFmpegPlayer->videoChannel);
     DELETE(fFmpegPlayer);
 
-    return 0;
+    return NULL;
 }
 
 
@@ -239,4 +252,70 @@ void *task_stop(void *args) {
  */
 void FFmpegPlayer::stop() {
     pthread_create(&pid_stop, NULL, task_stop, this);
+}
+
+/**
+ * 获取视频时长.
+ * @return
+ */
+int FFmpegPlayer::getDuration() {
+    return duration;
+}
+
+/**
+ * 调节进度.
+ * @param progress
+ */
+void FFmpegPlayer::seek(int progress) {
+    this->progres = progress;
+    if (this->progres < 0 || this->progres > duration)
+    {
+        return;
+    }
+
+    if (!audioChannel && !videoChannel)
+    {
+        return;
+    }
+
+    if (!avFormatContext)
+    {
+        return;
+    }
+
+    pthread_mutex_lock(&seek_mutex);
+    int ret = av_seek_frame(avFormatContext, -1, this->progres * AV_TIME_BASE, AVSEEK_FLAG_BACKWARD);
+    LOGD("设置进度: %d", ret);
+    if (ret < 0)
+    {
+         if (jniCallbackHelper)
+         {
+             jniCallbackHelper->onPlayer(THREAD, -1);
+         }
+
+        LOGD("设置进度失败.");
+        return;
+    }
+
+    if (audioChannel)
+    {
+        audioChannel->packets.setWork(0);
+        audioChannel->frames.setWork(0);
+        audioChannel->packets.clear();
+        audioChannel->frames.clear();
+        audioChannel->packets.setWork(1);
+        audioChannel->frames.setWork(1);
+    }
+
+    if (videoChannel)
+    {
+        videoChannel->packets.setWork(0);
+        videoChannel->frames.setWork(0);
+        videoChannel->packets.clear();
+        videoChannel->frames.clear();
+        videoChannel->packets.setWork(1);
+        videoChannel->frames.setWork(1);
+    }
+
+    pthread_mutex_unlock(&seek_mutex);
 }

@@ -68,7 +68,6 @@ void VideoChannel::video_decode() {
             continue;
         }
         int ret = packets.pop(packet);
-        LOGD("video decode ret: %d isPlaying: %d", ret, isPlaying);
         if (!isPlaying) {
             break;
         }
@@ -152,6 +151,10 @@ void VideoChannel::video_play() {
         double  video_time = frame->best_effort_timestamp * av_q2d(time_base);
         if (!audio_channel) {
             av_usleep(real_delay * 1000000);
+            if (jniCallbackHelper)
+            {
+                jniCallbackHelper->onProgress(THREAD, video_time);
+            }
         } else {
             double time_diff = video_time - audio_channel->audio_time;
             if (time_diff > 0) {
