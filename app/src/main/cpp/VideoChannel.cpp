@@ -195,3 +195,11 @@ void VideoChannel::setRenderCallback(RenderCallback callback) {
 void VideoChannel::setAudioChannel(AudioChannel *audioChannel) {
     this->audio_channel = audioChannel;
 }
+
+void VideoChannel::stop() {
+    isPlaying = 0;
+    packets.setWork(0);
+    frames.setWork(0);
+    pthread_join(pid_video_decode, NULL);
+    pthread_join(pid_video_play, NULL);
+}

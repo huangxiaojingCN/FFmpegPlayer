@@ -36,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
 
     private SeekBar mSeekBar;
 
+    private Button mBtnStop;
+
     private FFmpegPlayer fmpegPlayer;
     private int mDuration;
     private boolean isTouch;
@@ -50,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
         mTvMessage = findViewById(R.id.tv_message);
         mBtnPrepare = findViewById(R.id.btn_prepare);
+        mBtnStop = findViewById(R.id.btn_stop);
         mSurfaceView = findViewById(R.id.surface_view);
         mSeekBar = findViewById(R.id.seekbar);
         mTvTime = findViewById(R.id.tv_time);
@@ -76,8 +79,11 @@ public class MainActivity extends AppCompatActivity {
                     public void run() {
                         if (status == 0) {
                             mDuration = fmpegPlayer.getDuration();
-
-                            mTvTime.setText("00:00/" + getMinutes(mDuration) + ":" + getSeconds(mDuration));
+                            if (mDuration != 0) {
+                                mTvTime.setVisibility(View.VISIBLE);
+                                mSeekBar.setVisibility(View.VISIBLE);
+                                mTvTime.setText("00:00/" + getMinutes(mDuration) + ":" + getSeconds(mDuration));
+                            }
                             Toast.makeText(MainActivity.this, "开始播放: ", Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(MainActivity.this, "开始解析数据异常: ", Toast.LENGTH_SHORT).show();
@@ -141,6 +147,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+        mBtnStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fmpegPlayer.stop();
+                mTvTime.setVisibility(View.GONE);
+                mSeekBar.setVisibility(View.GONE);
+            }
+        });
+
         mSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 
             @Override
@@ -199,4 +215,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private Handler handler = new Handler();
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        fmpegPlayer.stop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        fmpegPlayer.release();
+    }
 }

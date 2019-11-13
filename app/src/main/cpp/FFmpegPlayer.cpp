@@ -200,6 +200,8 @@ void FFmpegPlayer::start() {
         }
     }
 
+    videoChannel->stop();
+    audioChannel->stop();
     isPlaying = 0;
 }
 
@@ -251,6 +253,15 @@ void *task_stop(void *args) {
  *  停止播放.
  */
 void FFmpegPlayer::stop() {
+    jniCallbackHelper = NULL;
+    if (audioChannel) {
+        audioChannel->jniCallbackHelper = NULL;
+    }
+
+    if (videoChannel) {
+        videoChannel->jniCallbackHelper = NULL;
+    }
+
     pthread_create(&pid_stop, NULL, task_stop, this);
 }
 
@@ -267,8 +278,7 @@ int FFmpegPlayer::getDuration() {
  * @param progress
  */
 void FFmpegPlayer::seek(int progress) {
-    this->progres = progress;
-    if (this->progres < 0 || this->progres > duration)
+    if (progress < 0 || progress > duration)
     {
         return;
     }
@@ -284,16 +294,13 @@ void FFmpegPlayer::seek(int progress) {
     }
 
     pthread_mutex_lock(&seek_mutex);
-    int ret = av_seek_frame(avFormatContext, -1, this->progres * AV_TIME_BASE, AVSEEK_FLAG_BACKWARD);
-    LOGD("设置进度: %d", ret);
+    int ret = av_seek_frame(avFormatContext, -1, progress * AV_TIME_BASE, AVSEEK_FLAG_BACKWARD);
     if (ret < 0)
     {
          if (jniCallbackHelper)
          {
              jniCallbackHelper->onPlayer(THREAD, -1);
          }
-
-        LOGD("设置进度失败.");
         return;
     }
 

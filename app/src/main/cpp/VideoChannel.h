@@ -41,6 +41,7 @@ public:
 
     AudioChannel *audio_channel;
 
+    void stop();
 };
 
 

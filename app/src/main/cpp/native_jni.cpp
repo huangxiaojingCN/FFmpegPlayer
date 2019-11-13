@@ -149,7 +149,9 @@ Java_com_hxj_ffmpegplayer_FFmpegPlayer_getDurationNative(JNIEnv *env, jobject in
     }
 
     return 0;
-}extern "C"
+}
+
+extern "C"
 JNIEXPORT void JNICALL
 Java_com_hxj_ffmpegplayer_FFmpegPlayer_seekNative(JNIEnv *env, jobject instance,
                                                   jint playProgress) {

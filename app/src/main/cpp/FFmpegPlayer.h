@@ -58,7 +58,6 @@ private:
     pthread_t pid_start;
     int duration;
     pthread_mutex_t seek_mutex;
-    int progres;
 };
 
 

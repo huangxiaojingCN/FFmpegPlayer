@@ -5,6 +5,13 @@
 #include "AudioChannel.h"
 
 AudioChannel::~AudioChannel() {
+    if (swr_ctx)
+    {
+        swr_free(&swr_ctx);
+        swr_ctx = NULL;
+    }
+
+    DELETE(out_buffers);
 }
 
 AudioChannel::AudioChannel(int stream_index, AVCodecContext *pContext, AVRational time_base)
@@ -232,4 +239,35 @@ int AudioChannel::getPcm() {
 
     releaseAVFrame(&frame);
     return pcm_data_size;
+}
+
+void AudioChannel::stop() {
+    isPlaying = 0;
+    packets.setWork(0);
+    frames.setWork(0);
+    pthread_join(pid_audio_decode, NULL);
+    pthread_join(pid_audio_play, NULL);
+
+//7.1 设置停止状态
+    if (bqPlayerPlay) {
+        (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_STOPPED);
+        bqPlayerPlay = 0;
+    }
+//7.2 销毁播放器
+    if (bqPlayerObject) {
+        (*bqPlayerObject)->Destroy(bqPlayerObject);
+        bqPlayerObject = 0;
+        bqPlayerBufferQueue = 0;
+    }
+//7.3 销毁混音器
+    if (outputMixObject) {
+        (*outputMixObject)->Destroy(outputMixObject);
+        outputMixObject = 0;
+    }
+//7.4 销毁引擎
+    if (engineObject) {
+        (*engineObject)->Destroy(engineObject);
+        engineObject = 0;
+        engineInterface = 0;
+    }
 }

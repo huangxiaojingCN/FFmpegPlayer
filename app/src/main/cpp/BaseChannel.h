@@ -8,6 +8,7 @@
 #include "log.h"
 #include "safe_queue.h"
 #include "JNICallbackHelper.h"
+#include "macro.h"
 
 extern "C" {
 #include "libavcodec/avcodec.h"

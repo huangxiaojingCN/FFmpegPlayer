@@ -52,6 +52,8 @@ public:
     SwrContext *swr_ctx;
 
     int getPcm();
+
+    void stop();
 };
 
 
