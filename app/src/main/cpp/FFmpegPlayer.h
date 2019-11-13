@@ -11,12 +11,16 @@
 #include "AudioChannel.h"
 #include "VideoChannel.h"
 #include "JNICallbackHelper.h"
+#include "macro.h"
 
 extern "C" {
 #include "libavformat/avformat.h"
 };
 
 class FFmpegPlayer {
+
+    friend void *task_stop(void *args);
+
 public:
     FFmpegPlayer(const char *string, JNICallbackHelper *pHelper);
 
@@ -32,6 +36,8 @@ public:
 
     void setRenderCallback(RenderCallback callback);
 
+    void stop();
+
 private:
     bool isPlaying;
     char *dataSource;
@@ -42,10 +48,11 @@ private:
     JNICallbackHelper *jniCallbackHelper;
 
     AVFormatContext *avFormatContext;
-    pthread_t start_tid;
-    pthread_t pid_player;
 
     RenderCallback callback;
+    pthread_t pid_stop;
+    pthread_t pid_prepare;
+    pthread_t pid_start;
 };
 
 

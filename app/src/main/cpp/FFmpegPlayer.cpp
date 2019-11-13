@@ -35,7 +35,7 @@ void *task_prepare_async(void *args) {
 }
 
 void FFmpegPlayer::prepareAsync() {
-    pthread_create(&pid_player, NULL, task_prepare_async, this);
+    pthread_create(&pid_prepare, NULL, task_prepare_async, this);
 }
 
 /**
@@ -204,9 +204,39 @@ void FFmpegPlayer::startAsync() {
     }
 
     isPlaying = 1;
-    pthread_create(&start_tid, NULL, start_async, this);
+    pthread_create(&pid_start, NULL, start_async, this);
 }
 
 void FFmpegPlayer::setRenderCallback(RenderCallback callback) {
     this->callback = callback;
+}
+
+void *task_stop(void *args) {
+    FFmpegPlayer *fFmpegPlayer = static_cast<FFmpegPlayer *>(args);
+    fFmpegPlayer->isPlaying = 0;
+
+    // 等待解析和播放停止
+    pthread_join(fFmpegPlayer->pid_start, NULL);
+    pthread_join(fFmpegPlayer->pid_prepare, NULL);
+
+    // 释放媒体流 formatContent
+    if (fFmpegPlayer->avFormatContext) {
+        avformat_close_input(&fFmpegPlayer->avFormatContext);
+        avformat_free_context(fFmpegPlayer->avFormatContext);
+        fFmpegPlayer->avFormatContext = NULL;
+    }
+
+    DELETE(fFmpegPlayer->audioChannel);
+    DELETE(fFmpegPlayer->videoChannel);
+    DELETE(fFmpegPlayer);
+
+    return 0;
+}
+
+
+/**
+ *  停止播放.
+ */
+void FFmpegPlayer::stop() {
+    pthread_create(&pid_stop, NULL, task_stop, this);
 }

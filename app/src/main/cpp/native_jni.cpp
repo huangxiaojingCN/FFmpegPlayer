@@ -123,11 +123,21 @@ Java_com_hxj_ffmpegplayer_FFmpegPlayer_setSurfaceNative(JNIEnv *env, jobject ins
 extern "C"
 JNICALL void JNICALL
 Java_com_hxj_ffmpegplayer_FFmpegPlayer_stopNative(JNIEnv *env, jobject instance) {
-
+    if (fFmpegPlayer) {
+        fFmpegPlayer->stop();
+    }
 }
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_hxj_ffmpegplayer_FFmpegPlayer_releaseNative(JNIEnv *env, jobject instance) {
+    pthread_mutex_lock(&mutex);
 
+    if (window) {
+        ANativeWindow_release(window);
+        window = NULL;
+    }
+    pthread_mutex_unlock(&mutex);
+
+    DELETE(fFmpegPlayer);
 }
